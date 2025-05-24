@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="style.css" />
+    <title>CRUD Barang</title>
+  </head>
+  <body>
+    <h1>CRUD Barang</h1>
+
+    <input id="namaBarang" placeholder="Nama Barang" /><br />
+    <input id="stok" placeholder="Stok" /><br />
+    <input id="harga" placeholder="Harga" /><br />
+    <input id="kategori" placeholder="Kategori" /><br />
+    <input id="deskripsi" placeholder="Deskripsi" /><br />
+
+    <div class="button-container">
+      <button onclick="tambah()">Tambah</button>
+      <button onclick="update()">Update</button>
+      <button onclick="hapus()">Hapus</button>
+      <button onclick="ambil()">Lihat Semua</button>
+    </div>
+
+    <pre id="output"></pre>
+
+    <script>
+      const endpoint = "http://localhost:3000/barang";
+
+      function tambah() {
+        fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nama_barang: document.getElementById("namaBarang").value,
+            stok: document.getElementById("stok").value,
+            harga: document.getElementById("harga").value,
+            kategori: document.getElementById("deskripsi").value,
+          }),
+        })
+          .then((r) => r.json())
+          .then((data) => {
+            alert("Tambah sukses");
+            console.log(data);
+          });
+      }
+
+      function update() {
+        fetch(`${endpoint}/${document.getElementById("nim").value}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nama: document.getElementById("nama").value,
+            kelas: document.getElementById("kelas").value,
+            alamat: document.getElementById("alamat").value,
+          }),
+        })
+          .then((r) => r.json())
+          .then((data) => {
+            alert("Update sukses");
+            console.log(data);
+          });
+      }
+
+      function hapus() {
+        fetch(`${endpoint}/${document.getElementById("nim").value}`, {
+          method: "DELETE",
+        })
+          .then((r) => r.json())
+          .then((data) => {
+            alert("Hapus sukses");
+            console.log(data);
+          });
+      }
+
+      function ambil() {
+        fetch(endpoint)
+          .then((r) => r.json())
+          .then((data) => {
+            let html = `<table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; margin: auto; cursor: pointer;">
+        <thead>
+          <tr>
+            <th>ID Barang</th>
+            <th>Nama Barang</th>
+            <th>Stok</th>
+            <th>Harga</th>
+            <th>Kategori</th>
+            <th>Deskripsi</th>
+          </tr>
+        </thead>
+        <tbody>`;
+
+            data.forEach((barang, index) => {
+              html += `
+          <tr data-index="${index}">
+            <td>${barang.id}</td>
+            <td>${barang.nama_barang}</td>
+            <td>${barang.stok}</td>
+            <td>${barang.harga}</td>
+            <td>${barang.kategori}</td>
+            <td>${barang.deskripsi}</td>
+          </tr>`;
+            });
+
+            html += `</tbody></table>`;
+
+            document.getElementById("output").innerHTML = html;
+
+            // Setelah tabel dibuat, pasang event click ke tiap baris <tr>
+            const rows = document.querySelectorAll("#output table tbody tr");
+            rows.forEach((row) => {
+              row.addEventListener("click", () => {
+                const i = row.getAttribute("data-index");
+                const barang = data[i];
+
+                // Isi input form dengan data yang dipilih
+                document.getElementById("id").value = barang.id || "";
+                document.getElementById("nama_barang").value =
+                  barang.nama_barang || "";
+                document.getElementById("stok").value = barang.stok || "";
+                document.getElementById("harga").value = barang.harga || "";
+                document.getElementById("kategori").value =
+                  barang.kategori || "";
+                document.getElementById("deskripsi").value =
+                  barang.deskripsi || "";
+              });
+            });
+          })
+          .catch((err) => {
+            alert("Gagal ambil data");
+            console.error(err);
+          });
+      }
+    </script>
+  </body>
+</html>
