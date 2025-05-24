@@ -7,17 +7,19 @@
   <body>
     <h1>CRUD Barang</h1>
 
+    <input id="id" placeholder="ID Barang" style="display: none" /><br />
     <input id="namaBarang" placeholder="Nama Barang" /><br />
     <input id="stok" placeholder="Stok" /><br />
     <input id="harga" placeholder="Harga" /><br />
     <input id="kategori" placeholder="Kategori" /><br />
-    <input id="deskripsi" placeholder="Deskripsi" /><br />
+    <input id="deskripsi" placeholder="Deskripsi" size="" />
 
     <div class="button-container">
       <button onclick="tambah()">Tambah</button>
       <button onclick="update()">Update</button>
       <button onclick="hapus()">Hapus</button>
       <button onclick="ambil()">Lihat Semua</button>
+      <button onclick="reset()">Reset</button>
     </div>
 
     <pre id="output"></pre>
@@ -33,41 +35,65 @@
             nama_barang: document.getElementById("namaBarang").value,
             stok: document.getElementById("stok").value,
             harga: document.getElementById("harga").value,
-            kategori: document.getElementById("deskripsi").value,
+            kategori: document.getElementById("kategori").value,
+            deskripsi: document.getElementById("deskripsi").value,
           }),
         })
           .then((r) => r.json())
           .then((data) => {
             alert("Tambah sukses");
+            ambil(); // refresh tabel
             console.log(data);
           });
       }
 
       function update() {
-        fetch(`${endpoint}/${document.getElementById("nim").value}`, {
+        const id = document.getElementById("id").value;
+
+        fetch(`${endpoint}/${id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            nama: document.getElementById("nama").value,
-            kelas: document.getElementById("kelas").value,
-            alamat: document.getElementById("alamat").value,
+            nama_barang: document.getElementById("namaBarang").value,
+            stok: document.getElementById("stok").value,
+            harga: document.getElementById("harga").value,
+            kategori: document.getElementById("kategori").value,
+            deskripsi: document.getElementById("deskripsi").value,
           }),
         })
           .then((r) => r.json())
           .then((data) => {
             alert("Update sukses");
-            console.log(data);
+            ambil();
+            reset();
+          })
+          .catch((err) => {
+            alert("Gagal update");
+            console.error(err);
           });
       }
 
       function hapus() {
-        fetch(`${endpoint}/${document.getElementById("nim").value}`, {
+        const id = document.getElementById("id").value;
+
+        const konfirmasi = confirm("Yakin ingin menghapus data ini?");
+        if (!konfirmasi) return;
+
+        fetch(`${endpoint}/${id}`, {
           method: "DELETE",
         })
-          .then((r) => r.json())
+          .then((r) => {
+            if (!r.ok) throw new Error("Gagal hapus");
+            return r.json();
+          })
           .then((data) => {
-            alert("Hapus sukses");
-            console.log(data);
+            alert(data.message || "Hapus sukses");
+            ambil(); // refresh tabel
+            reset(); // kosongkan form
+          })
+          .catch((err) => {
+            alert(err.message);
+            console.error(err);
           });
       }
 
@@ -108,12 +134,18 @@
             const rows = document.querySelectorAll("#output table tbody tr");
             rows.forEach((row) => {
               row.addEventListener("click", () => {
+                // Hapus kelas highlight di semua baris
+                rows.forEach((r) => r.classList.remove("highlight"));
+
+                // Tambahkan kelas highlight di baris yang diklik
+                row.classList.add("highlight");
+
                 const i = row.getAttribute("data-index");
                 const barang = data[i];
 
                 // Isi input form dengan data yang dipilih
                 document.getElementById("id").value = barang.id || "";
-                document.getElementById("nama_barang").value =
+                document.getElementById("namaBarang").value =
                   barang.nama_barang || "";
                 document.getElementById("stok").value = barang.stok || "";
                 document.getElementById("harga").value = barang.harga || "";
@@ -128,6 +160,15 @@
             alert("Gagal ambil data");
             console.error(err);
           });
+      }
+
+      function reset() {
+        // document.getElementById("id").value = "";
+        document.getElementById("namaBarang").value = "";
+        document.getElementById("stok").value = "";
+        document.getElementById("harga").value = "";
+        document.getElementById("kategori").value = "";
+        document.getElementById("deskripsi").value = "";
       }
     </script>
   </body>
